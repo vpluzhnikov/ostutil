@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from regionres import get_avaiable_hosts
-from common import get_session, get_nova_connecton
+from common import get_session, get_nova_connecton, get_keystone_connection
 import sys
 
 if len(sys.argv) != 2:
@@ -10,4 +10,5 @@ else:
 
 session=get_session(configfile)
 
-print get_avaiable_hosts(get_nova_connecton(session))
+print get_keystone_connection(session)
+#print get_avaiable_hosts(get_nova_connecton(session))
