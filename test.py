@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from regionres import get_avaiable_hosts
+from regionres import get_avaiable_hosts, get_projects
 from common import get_session, get_nova_connecton, get_keystone_connection
 import sys
 
@@ -11,4 +11,5 @@ else:
 session=get_session(configfile)
 
 #print get_nova_connecton(session)
-print get_avaiable_hosts(get_nova_connecton(session))
+print get_projects(get_keystone_connection(session))
+#print get_avaiable_hosts(get_nova_connecton(session))

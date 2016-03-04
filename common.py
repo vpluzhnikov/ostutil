@@ -37,8 +37,6 @@ def get_session(configfile):
 
 def get_keystone_connection(session):
     return client_keystone.Client(session=session)
-#    project = keystone.projects.list()
-
 
 def get_nova_connecton(session):
     return client_nova.Client(2, session=session)
