@@ -1,10 +1,10 @@
+# -*- coding: utf-8 -*-
 from common import get_nova_connecton
 import logging
 
 logger = logging.getLogger(__name__)
 
-def get_avaiable_hosts():
-    nova = get_nova_connecton()
+def get_avaiable_hosts(nova):
     cpu_count = 0
     memory_count = 0
     disk_count = 0

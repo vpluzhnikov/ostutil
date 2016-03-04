@@ -1,4 +1,13 @@
-from novaconn import get_avaiable_hosts
-from common import load_config
+# -*- coding: utf-8 -*-
+from regionres import get_avaiable_hosts
+from common import get_session, get_nova_connecton
+import sys
 
-print get_avaiable_hosts()
+if len(sys.argv) != 2:
+    configfile = None
+else:
+    configfile = sys.argv[1]
+
+session=get_session(configfile)
+
+print get_avaiable_hosts(get_nova_connecton(session))
