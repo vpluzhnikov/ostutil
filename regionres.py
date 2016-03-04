@@ -23,12 +23,22 @@ def get_full_capacity(nova):
     return {u'cpu' : cpu_count, u'memory_mb' : memory_count, u'disk_gb' : disk_count}
 
 def get_allocated_capacity(nova, keystone):
+    projects = []
+    total_cpu = 0
+    total_ram = 0
+    total_instances = 0
     if nova and keystone:
         for project in get_projects(keystone):
-            quota = nova.client.get(project['id'])
-            print quota.cores
-            print quota.ram
-            print quota.instances
+            quota = nova.quotas.get(project['id'])
+            total_cpu += quota.cores
+            total_ram += quota.ram
+            total_instances += quota.instances
+            project.update({'cpu' : quota.cores, 'ram': quota.ram, 'instances' : quota.instances})
+            projects.append(project)
+        return {u'cpu' : total_cpu,
+                u'memory_mb' : total_ram,
+                u'instances' : total_instances,
+                u'project_list' : projects }
     else:
         logger.error('No active keystone or nova connection')
         return None
@@ -42,6 +52,6 @@ def get_projects(keystone):
     else:
         logger.error('No active keystone connection')
         return None
-    logger.info('Total '+len(projects)+' projects discovered')
+    logger.info('Total '+str(len(projects))+' projects discovered')
     return projects
 
