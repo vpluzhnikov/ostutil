@@ -29,7 +29,7 @@ def get_session(configfile):
                 user_domain_name=config['domain'],
                 project_domain_name=config['domain'],)
             sess = session.Session(auth=auth, verify=config['cacert'])
-            return session
+            return sess
         except:
                 return None
     else:
