@@ -10,5 +10,5 @@ else:
 
 session=get_session(configfile)
 
-print get_nova_connecton(session)
-#print get_avaiable_hosts(get_nova_connecton(session))
+#print get_nova_connecton(session)
+print get_avaiable_hosts(get_nova_connecton(session))
