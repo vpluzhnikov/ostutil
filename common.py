@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 __author__ = 'vsevolodpluzhnikov'
 
-from novaclient import client as client_nova
+from novaclient.v2 import client as client_nova
 from keystoneclient.auth.identity import v3
 from keystoneclient import session
 from keystoneclient.v3 import client as client_keystone
