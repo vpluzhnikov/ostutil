@@ -31,7 +31,8 @@ def get_session(configfile):
             sess = session.Session(auth=auth, verify=config['cacert'])
             return sess
         except:
-                return None
+            logger.error('Error for authentication with credentials from ' + configfile)
+            return None
     else:
         return None
 
@@ -45,8 +46,9 @@ def load_config(configfile):
     consettings = ConfigParser()
     consettings.read(configfile)
     try:
-        logger.debug('Read config file')
+        logger.debug('Read config file ' + configfile)
         return dict(consettings.items('Connection'))
     except:
+        logger.error('Error while reading configuration from ' + configfile)
         return None
 
