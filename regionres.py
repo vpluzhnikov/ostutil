@@ -4,7 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def get_avaiable_hosts(nova):
+def get_full_capacity(nova):
     cpu_count = 0
     memory_count = 0
     disk_count = 0
@@ -22,13 +22,26 @@ def get_avaiable_hosts(nova):
         return None
     return {u'cpu' : cpu_count, u'memory_mb' : memory_count, u'disk_gb' : disk_count}
 
+def get_allocated_capacity(nova, keystone):
+    if nova and keystone:
+        for project in get_projects(keystone):
+            quota = nova.client.get(project['id'])
+            print quota.cores
+            print quota.ram
+            print quota.instances
+    else:
+        logger.error('No active keystone or nova connection')
+        return None
+
+
 def get_projects(keystone):
     projects = []
     if keystone:
         for project in keystone.projects.list():
-            project.append({u'name' : unicode(project._info['name']), u'id' : unicode(project._info['id'])})
+            projects.append({u'name' : unicode(project.name), u'id' : unicode(project.id)})
     else:
         logger.error('No active keystone connection')
         return None
     logger.info('Total '+len(projects)+' projects discovered')
     return projects
+
