@@ -2,6 +2,7 @@
 __author__ = 'vsevolodpluzhnikov'
 
 from novaclient import client as client_nova
+from ceilometerclient import client as client_ceilometer
 from keystoneclient.auth.identity import v3
 from keystoneclient import session
 from keystoneclient.v3 import client as client_keystone
@@ -41,6 +42,10 @@ def get_keystone_connection(session):
 
 def get_nova_connecton(session):
     return client_nova.Client(2, session=session)
+
+def get_ceilometer_connecton(session):
+    return client_ceilometer.Client(2, session=session)
+
 
 def load_config(configfile):
     consettings = ConfigParser()
