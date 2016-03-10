@@ -43,6 +43,42 @@ def get_allocated_capacity(nova, keystone):
         logger.error('No active keystone or nova connection')
         return None
 
+def get_project_max(ceilometer, project):
+    query = [dict(field='project_id', op='eq', value=project), dict(field='meter',op='eq',value='cpu_util')]
+    return ceilometer.statistics.list('cpu_util', q=query, period=1000)
+
+def get_mapped_resources(nova, keystone):
+    projects = {}
+    for project in get_projects(keystone):
+        projects.update ({ project['id'] : {'name' : project['name']} })
+    flavors = get_flavors(nova)
+    total_cpu = 0
+    total_ram = 0
+    total_instances = 0
+    if nova and keystone:
+        for server in nova.servers.list():
+            if 'count' in projects[server.tenant_id].keys():
+                projects[server.tenant_id]['instances'] += 1
+            else:
+                projects[server.tenant_id]['count'] = 1
+            if 'cpu' in projects[server.tenant_id].keys():
+                projects[server.tenant_id]['cpu'] += flavors[server.flavor['id']]['vcpus']
+            else:
+                projects[server.tenant_id]['cpu'] = flavors[server.flavor['id']]['vcpus']
+            if 'ram' in projects[server.tenant_id].keys():
+                projects[server.tenant_id]['ram'] += flavors[server.flavor['id']]['ram']
+            else:
+                projects[server.tenant_id]['ram'] = flavors[server.flavor['id']]['ram']
+            total_cpu += flavors[server.flavor['id']]['vcpus']
+            total_ram += flavors[server.flavor['id']]['ram']
+            total_instances += 1
+        return {u'cpu' : total_cpu,
+                u'memory_mb' : total_ram,
+                u'instances' : total_instances,
+                u'project_list' : projects }
+    else:
+        logger.error('No active keystone or nova connection')
+        return None
 
 def get_projects(keystone):
     projects = []
@@ -55,3 +91,14 @@ def get_projects(keystone):
     logger.info('Total '+str(len(projects))+' projects discovered')
     return projects
 
+def get_flavors(nova):
+    flavors = {}
+    if nova:
+        for flavor in nova.flavors.list():
+            flavors.update({ flavor.id : {'name' : flavor.name,
+                                          'ram' : flavor.ram,
+                                          'vcpus' : flavor.vcpus}})
+    else:
+        logger.error('No active nova connection')
+        return None
+    return flavors
