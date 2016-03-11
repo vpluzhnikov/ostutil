@@ -4,6 +4,23 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def get_project_max(ceilometer, project):
+    query = [dict(field='project_id', op='eq', value=project), dict(field='meter',op='eq',value='cpu_util')]
+    return ceilometer.statistics.list('cpu_util', q=query, period=1000)
+
+def get_projects_utilization(keystone, ceilometer):
+    cpu_count = 0
+    memory_count = 0
+    disk_count = 0
+    projects = {}
+    if keystone and ceilometer:
+        for project in get_projects(keystone):
+            projects.update(get_project_max(ceilometer, unicode(project.id)))
+    else:
+        logger.error('No active keystone or ceilometer connection')
+        return None
+    return projects
+
 def get_full_capacity(nova):
     cpu_count = 0
     memory_count = 0
@@ -13,7 +30,6 @@ def get_full_capacity(nova):
             if host.service == u'compute':
                 logger.info('Compute host ' + host.host_name + ' discovered.')
                 compute_host = nova.hosts.get(host.host_name)[0]._info
-#                print compute_host
                 cpu_count += compute_host['resource']['cpu']
                 memory_count += compute_host['resource']['memory_mb']
                 disk_count += compute_host['resource']['disk_gb']
@@ -42,10 +58,6 @@ def get_allocated_capacity(nova, keystone):
     else:
         logger.error('No active keystone or nova connection')
         return None
-
-def get_project_max(ceilometer, project):
-    query = [dict(field='project_id', op='eq', value=project), dict(field='meter',op='eq',value='cpu_util')]
-    return ceilometer.statistics.list('cpu_util', q=query, period=1000)
 
 def get_mapped_resources(nova, keystone):
     projects = {}
