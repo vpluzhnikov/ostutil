@@ -60,6 +60,9 @@ def get_allocated_capacity(nova, keystone):
         return None
 
 def get_mapped_resources(nova, keystone):
+    search_opts = {
+        'all_tenants': 1,
+        }
     projects = {}
     for project in get_projects(keystone):
         projects.update ({ project['id'] : {'name' : project['name']} })
@@ -68,7 +71,7 @@ def get_mapped_resources(nova, keystone):
     total_ram = 0
     total_instances = 0
     if nova and keystone:
-        for server in nova.servers.list():
+        for server in nova.servers.list(search_opts):
             if 'count' in projects[server.tenant_id].keys():
                 projects[server.tenant_id]['instances'] += 1
             else:
