@@ -15,7 +15,7 @@ def get_projects_utilization(keystone, ceilometer):
     projects = {}
     if keystone and ceilometer:
         for project in get_projects(keystone):
-            projects.update(get_project_max(ceilometer, unicode(project.id)))
+            projects.update(get_project_max(ceilometer, unicode(project['id'])))
     else:
         logger.error('No active keystone or ceilometer connection')
         return None
