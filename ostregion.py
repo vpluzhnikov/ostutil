@@ -74,7 +74,7 @@ class region:
         return flavors
 
     def _get_full_capacity(self):
-        self.logger('Get full capacity from region')
+        self.logger.info('Get full capacity from region')
         cpu = 0
         ram = 0
         disk = 0
@@ -94,6 +94,7 @@ class region:
                 u'disk_gb' : disk}
 
     def _get_allocated_capacity(self):
+        self.logger.info('Get allocated capacity for projects in region')
         cpu = 0
         ram = 0
         instances = 0
