@@ -8,7 +8,7 @@ else:
     configfile = sys.argv[1]
 
 r = region('ost.ini')
-print r.__dict__
+print r._getflavors()
 #print get_mapped_resources(nova, keystone)
 #print get_projects_utilization(keystone, ceilometer)
 #for flavor in nova.flavors.list():

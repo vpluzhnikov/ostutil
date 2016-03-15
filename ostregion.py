@@ -61,7 +61,7 @@ class region:
         return projects
 
     def _getflavors(self):
-        self.logger('Readingflavors from region')
+        self.logger.info('Reading flavors from region')
         flavors = {}
         if self.nova:
             for flavor in self.nova.flavors.list():
