@@ -43,6 +43,7 @@ class region:
                 self.flavors = self._getflavors()
                 self.fullcapacity = self._get_full_capacity()
                 self.alloccapacity = self._get_allocated_capacity()
+                self.runningcapacity = self._get_running_capacity()
             except:
                 self.logger.error('Error for authentication with credentials from ' + configfile)
                 self.connected = False
@@ -110,6 +111,36 @@ class region:
             return {u'alloc_cpu' : cpu,
                     u'ram_mb' : ram,
                     u'alloc_instances' : instances,
+                    }
+        else:
+            self.logger.error('No active keystone or nova connection')
+            return None
+
+
+    def _get_running_capacity(self):
+        cpu = 0
+        ram = 0
+        instances = 0
+        if self.nova and self.keystone:
+            for server in self.servers:
+                if 'running_instances' in self.projects[server.tenant_id].keys():
+                    self.projects[server.tenant_id]['running_instances'] += 1
+                else:
+                    self.projects[server.tenant_id]['running_instances'] = 1
+                if 'cpu' in self.projects[server.tenant_id].keys():
+                    self.projects[server.tenant_id]['running_cpu'] += self.flavors[server.flavor['id']]['vcpus']
+                else:
+                    self.projects[server.tenant_id]['running_cpu'] = self.flavors[server.flavor['id']]['vcpus']
+                if 'ram' in self.projects[server.tenant_id].keys():
+                    self.projects[server.tenant_id]['running_ram'] += self.flavors[server.flavor['id']]['ram']
+                else:
+                    self.projects[server.tenant_id]['running_ram'] = self.flavors[server.flavor['id']]['ram']
+                cpu += self.flavors[server.flavor['id']]['vcpus']
+                ram += self.flavors[server.flavor['id']]['ram']
+                instances += 1
+            return {u'running_cpu' : cpu,
+                    u'running_ram_mb' : ram,
+                    u'running_instances' : instances,
                     }
         else:
             self.logger.error('No active keystone or nova connection')
