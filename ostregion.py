@@ -149,6 +149,6 @@ class region:
     def _get_utilization(self):
         if self.servers:
             for server in self.servers:
-                print self.ceilometer.statistics.list(q=build_query(server.id, 'cpu_util'))
+                print self.ceilometer.statistics.list('cpu_util', q=build_query(server.id, 'cpu_util'))
         else:
             self.logger.error('No servers discovered')
