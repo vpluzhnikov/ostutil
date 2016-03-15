@@ -39,28 +39,28 @@ class region:
                 self.ceilometer = client_ceilometer.Client(2, session=self.session)
                 self.hosts = self.nova.hosts.list()
                 self.servers = self.nova.servers.list(search_opts = { 'all_tenants': 1 })
-                self.projects = self.__getprogects__()
-                self.flavors = self.__getflavors__()
-                self.fullcapacity = self.__get_full_capacity__()
-                self.alloccapacity = self.__get_allocated_capacity__()
+                self.projects = self._getprogects()
+                self.flavors = self._getflavors()
+                self.fullcapacity = self._get_full_capacity()
+                self.alloccapacity = self._get_allocated_capacity()
             except:
                 self.logger.error('Error for authentication with credentials from ' + configfile)
                 self.connected = False
 
 
-    def __getprogects__(self):
+    def _getprogects(self):
         self.logger('Reading projects from region')
         projects = {}
         if self.keystone:
             for project in self.keystone.projects.list():
                 projects.update( { unicode(project.id) : { u'name' : unicode(project.name)}})
         else:
-            logger.error('No active keystone connection')
+            self.loggers.error('No active keystone connection')
             return None
         self.logger.info('Total '+str(len(projects))+' projects discovered')
         return projects
 
-    def __getflavors__(self):
+    def _getflavors(self):
         self.logger('Readingflavors from region')
         flavors = {}
         if self.nova:
@@ -73,7 +73,7 @@ class region:
             return None
         return flavors
 
-    def __get_full_capacity__(self):
+    def _get_full_capacity(self):
         self.logger('Get full capacity from region')
         cpu = 0
         ram = 0
@@ -93,7 +93,7 @@ class region:
                 u'ram_mb' : ram,
                 u'disk_gb' : disk}
 
-    def __get_allocated_capacity__(self):
+    def _get_allocated_capacity(self):
         cpu = 0
         ram = 0
         instances = 0
