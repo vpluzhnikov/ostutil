@@ -44,7 +44,7 @@ class region:
                 self.fullcapacity = self.__get_full_capacity__()
                 self.alloccapacity = self.__get_allocated_capacity__()
             except:
-                logger.error('Error for authentication with credentials from ' + configfile)
+                self.logger.error('Error for authentication with credentials from ' + configfile)
                 self.connected = False
 
 
