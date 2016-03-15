@@ -49,7 +49,7 @@ class region:
 
 
     def _getprogects(self):
-        self.logger('Reading projects from region')
+        self.logger.info('Reading projects from region')
         projects = {}
         if self.keystone:
             for project in self.keystone.projects.list():
