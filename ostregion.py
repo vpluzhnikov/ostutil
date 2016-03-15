@@ -34,9 +34,9 @@ class region:
                     user_domain_name=self.config['domain'],
                     project_domain_name=self.config['domain'],)
                 self.session = session.Session(auth=auth, verify=self.config['cacert'])
-                self.nova = client_nova.Client(2, session=session)
-                self.keystone = client_keystone.Client(session=session)
-                self.ceilometer = client_ceilometer.Client(2, session=session)
+                self.nova = client_nova.Client(2, session=self.session)
+                self.keystone = client_keystone.Client(session=self.session)
+                self.ceilometer = client_ceilometer.Client(2, session=self.session)
                 self.hosts = self.nova.hosts.list()
                 self.servers = self.nova.servers.list(search_opts = { 'all_tenants': 1 })
                 self.projects = self.__getprogects__()

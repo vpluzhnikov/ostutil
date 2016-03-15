@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from regionres import get_full_capacity, get_allocated_capacity, get_project_max, get_mapped_resources, get_projects_utilization
-from common import get_session, get_nova_connecton, get_keystone_connection, get_ceilometer_connecton
+from ostregion import region
 import sys
 
 if len(sys.argv) != 2:
@@ -8,14 +7,10 @@ if len(sys.argv) != 2:
 else:
     configfile = sys.argv[1]
 
-session=get_session(configfile)
-nova = get_nova_connecton(session)
-keystone = get_keystone_connection(session)
-ceilometer = get_ceilometer_connecton(session)
-
-#print get_flavors(nova)
-print get_mapped_resources(nova, keystone)
-print get_projects_utilization(keystone, ceilometer)
+r = region('ost.ini')
+print r.__dict__
+#print get_mapped_resources(nova, keystone)
+#print get_projects_utilization(keystone, ceilometer)
 #for flavor in nova.flavors.list():
 #    print flavor.__dict__
 #for server in nova.servers.list():
