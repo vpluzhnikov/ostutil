@@ -7,7 +7,6 @@ from keystoneclient.auth.identity import v3
 from keystoneclient import session
 from keystoneclient.v3 import client as client_keystone
 from ConfigParser import ConfigParser
-from novaclient.v2.quotas import QuotaSet
 
 import logging
 

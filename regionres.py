@@ -4,22 +4,37 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def get_project_max(ceilometer, project):
-    query = [dict(field='project_id', op='eq', value=project), dict(field='meter',op='eq',value='cpu_util')]
-    return ceilometer.statistics.list('cpu_util', q=query, period=1000)
+def get_resource_max(ceilometer, resource):
+    query = [dict(field='resource_id', op='eq', value=resource), dict(field='meter',op='eq',value='cpu_util')]
+    return ceilometer.statistics.list('cpu_util', q=query)
 
-def get_projects_utilization(keystone, ceilometer):
-    cpu_count = 0
-    memory_count = 0
-    disk_count = 0
+def get_projects_utilization(nova, keystone, ceilometer):
     projects = {}
-    if keystone and ceilometer:
-        for project in get_projects(keystone):
-            projects.update(get_project_max(ceilometer, unicode(project['id'])))
-    else:
-        logger.error('No active keystone or ceilometer connection')
+    search_opts = {
+        'all_tenants': 1,
+        }
+    for project in get_projects(keystone):
+        projects.update ({ project['id'] : {'name' : project['name']} })
+    if nova and keystone and ceilometer:
+        for server in nova.servers.list(search_opts=search_opts):
+            print get_resource_max(ceilometer, server.id)
         return None
-    return projects
+    else:
+        logger.error('No active keystone or nova or ceilometer connection')
+        return None
+
+#def get_projects_utilization(keystone, ceilometer):
+#    cpu_count = 0
+#    memory_count = 0
+#    disk_count = 0
+#    projects = {}
+#    if keystone and ceilometer:
+#        for project in get_projects(keystone):
+#            projects.update(get_project_max(ceilometer, unicode(project['id'])))
+#    else:
+#        logger.error('No active keystone or ceilometer connection')
+#        return None
+#    return projects
 
 def get_full_capacity(nova):
     cpu_count = 0
@@ -71,8 +86,8 @@ def get_mapped_resources(nova, keystone):
     total_ram = 0
     total_instances = 0
     if nova and keystone:
-        for server in nova.servers.list(search_opts):
-            if 'count' in projects[server.tenant_id].keys():
+        for server in nova.servers.list(search_opts=search_opts):
+            if 'instances' in projects[server.tenant_id].keys():
                 projects[server.tenant_id]['instances'] += 1
             else:
                 projects[server.tenant_id]['count'] = 1
