@@ -2,14 +2,13 @@
 __author__ = 'vsevolodpluzhnikov'
 
 
-from common import load_config
+from common import load_config, build_query
 import logging
 from novaclient import client as client_nova
 from ceilometerclient import client as client_ceilometer
 from keystoneclient.auth.identity import v3
 from keystoneclient import session
 from keystoneclient.v3 import client as client_keystone
-from ConfigParser import ConfigParser
 
 
 class region:
@@ -44,6 +43,7 @@ class region:
                 self.fullcapacity = self._get_full_capacity()
                 self.alloccapacity = self._get_allocated_capacity()
                 self.runningcapacity = self._get_running_capacity()
+                self.connected = True
             except:
                 self.logger.error('Error for authentication with credentials from ' + configfile)
                 self.connected = False
@@ -145,3 +145,10 @@ class region:
         else:
             self.logger.error('No active keystone or nova connection')
             return None
+
+    def _get_utilization(self):
+        if self.servers:
+            for server in self.servers:
+                print self.ceilometer.statistics.list(q=build_query(server.id, 'cpu_util'))
+        else:
+            self.logger.error('No servers discovered')
