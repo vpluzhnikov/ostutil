@@ -11,7 +11,6 @@ from keystoneclient import session
 from keystoneclient.v3 import client as client_keystone
 from ConfigParser import ConfigParser
 
-logger = logging.getLogger(__name__)
 
 class region:
 
@@ -24,6 +23,7 @@ class region:
         hosts - all hosts for region
         servers - all servers in region
         """
+        self.logger = logging.getLogger(__name__)
         self.config = load_config(configfile)
         if self.config:
             try:
@@ -49,7 +49,7 @@ class region:
 
 
     def __getprogects__(self):
-        logger('Reading projects from region')
+        self.logger('Reading projects from region')
         projects = {}
         if self.keystone:
             for project in self.keystone.projects.list():
@@ -57,11 +57,11 @@ class region:
         else:
             logger.error('No active keystone connection')
             return None
-        logger.info('Total '+str(len(projects))+' projects discovered')
+        self.logger.info('Total '+str(len(projects))+' projects discovered')
         return projects
 
     def __getflavors__(self):
-        logger('Readingflavors from region')
+        self.logger('Readingflavors from region')
         flavors = {}
         if self.nova:
             for flavor in self.nova.flavors.list():
@@ -69,25 +69,25 @@ class region:
                                               'ram' : flavor.ram,
                                               'vcpus' : flavor.vcpus}})
         else:
-            logger.error('No active nova connection')
+            self.logger.error('No active nova connection')
             return None
         return flavors
 
     def __get_full_capacity__(self):
-        logger('Get full capacity from region')
+        self.logger('Get full capacity from region')
         cpu = 0
         ram = 0
         disk = 0
         if self.nova:
             for host in self.nova.hosts.list():
                 if host.service == u'compute':
-                    logger.info('Compute host ' + host.host_name + ' discovered.')
+                    self.logger.info('Compute host ' + host.host_name + ' discovered.')
                     compute_host = self.nova.hosts.get(host.host_name)[0]._info
                     cpu += compute_host['resource']['cpu']
                     ram += compute_host['resource']['memory_mb']
                     disk += compute_host['resource']['disk_gb']
         else:
-            logger.error('No active nova connection')
+            self.logger.error('No active nova connection')
             return None
         return {u'cpu' : cpu,
                 u'ram_mb' : ram,
@@ -111,5 +111,5 @@ class region:
                     u'alloc_instances' : instances,
                     }
         else:
-            logger.error('No active keystone or nova connection')
+            self.logger.error('No active keystone or nova connection')
             return None
