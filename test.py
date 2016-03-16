@@ -36,13 +36,13 @@ rows.append(("Project Name",
 for project in r.projects.keys():
     rows.append((
         r.projects[project]['name'],
-        r.projects[project]['alloc_cpu'],
-        r.projects[project]['running_cpu'],
-        r.projects[project]['alloc_ram_mb'],
-        r.projects[project]['running_ram'],
-        r.projects[project]['running_instances'],
-        r.projects[project]['total_cpu%'],
-        r.projects[project]['total_ram%'] ))
+        str(r.projects[project]['alloc_cpu']),
+        str(r.projects[project]['running_cpu']),
+        str(r.projects[project]['alloc_ram_mb']),
+        str(r.projects[project]['running_ram']),
+        str(r.projects[project]['running_instances']),
+        str(r.projects[project]['total_cpu%']),
+        str(r.projects[project]['total_ram%']) ))
 print_table(rows)
 
 
