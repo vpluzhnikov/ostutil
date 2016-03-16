@@ -163,9 +163,9 @@ class region:
         else:
             self.logger.error('No servers discovered')
         for project in self.projects.keys():
-            if (('running_instances' in project.keys())
-                and ('utilized_instances' in project.keys())
-                and ('alloc_cpu' in project.keys())):
+            if ((u'running_instances' in self.projects[project].keys())
+                and ('utilized_instances' in self.projects[project].keys())
+                and ('alloc_cpu' in self.projects[project].keys())):
                 self.projects[project]['total_cpu%'] = ( float(self.projects[project]['utilized_cpu%']) /
                                                          float(self.projects[project]['utilized_instances']) ) * \
                                                        ( float(self.projects[project]['running_cpu']) /
