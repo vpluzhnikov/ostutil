@@ -18,22 +18,33 @@ rows = []
 rows.append(("Resource", "Total", "Allocated", "Running", "Utilized%"))
 rows.append(("CPU", str(r.fullcapacity['cpu']), str(r.alloccapacity['alloc_cpu']),
              str(r.runningcapacity['running_cpu']), str(r.utilizedcapacity['total_cpu_util%'])))
-rows.append(("RAM", str(r.fullcapacity['ram_mb']),  str(r.alloccapacity['ram_mb']),
+rows.append(("RAM (Mb)", str(r.fullcapacity['ram_mb']),  str(r.alloccapacity['ram_mb']),
              str(r.runningcapacity['running_ram_mb']), str(r.utilizedcapacity['total_ram_util%']) ))
+print_table(rows)
+print ""
+print "PROJECT STATISTICS"
+print ""
+rows = []
+rows.append(("Project Name",
+             "Total CPU",
+             "Running CPU",
+             "Total RAM",
+             "Running RAM",
+             "Running VMs",
+             "Utilized% CPU",
+             "Utilized% RAM" ))
+for project in r.projects.keys():
+    rows.append((
+        r.projects[project]['name'],
+        r.projects[project]['alloc_cpu'],
+        r.projects[project]['running_cpu'],
+        r.projects[project]['alloc_ram_mb'],
+        r.projects[project]['running_ram'],
+        r.projects[project]['running_instances'],
+        r.projects[project]['total_cpu%'],
+        r.projects[project]['total_ram%'] ))
 print_table(rows)
 
 
-#print "REGION STATISTICS"
-#print ""
-#print "CPU"
-#print "Total;Allocated;Running;Utilized%"
-#print str(r.fullcapacity['cpu']) + ";" + str(r.alloccapacity['alloc_cpu']) + ";" \
-#      + str(r.runningcapacity['running_cpu']) + ";" + str(r.utilizedcapacity['total_cpu_util%'])
-#print ""
-#print "RAM"
-#print "Total;Allocated;Running;Utilized%"
-#print str(r.fullcapacity['memory_mb']) + ";" + str(r.alloccapacity['alloc_ram_mb']) + ";"\
-#      + str(r.runningcapacity['running_ram_mb']) + ";" + str(r.utilizedcapacity['total_ram_util%'])
-#
 
 
