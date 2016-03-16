@@ -175,6 +175,8 @@ class region:
         else:
             self.logger.error('No servers discovered')
         for project in self.projects.keys():
+            self.projects[project]['total_cpu%'] = 0
+            self.projects[project]['total_ram%'] = 0
             if ((u'running_instances' in self.projects[project].keys())
                 and (u'utilized_instances' in self.projects[project].keys())
                 and (u'alloc_cpu' in self.projects[project].keys())):
