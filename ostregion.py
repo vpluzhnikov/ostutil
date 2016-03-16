@@ -156,8 +156,11 @@ class region:
                     self.logger.error('Cannot get cpu statistics for server id = '+server.id)
                 try:
                     mem_stat =  self.ceilometer.statistics.list('memory', q=build_query(server.id, 'memory'))
-                    self.projects[server.tenant_id]['utilized_ram%'] += float(mem_stat[0].max) / \
-                                                                        float(self.flavors[server.flavor['id']]['ram'])
+                    if float(self.flavors[server.flavor['id']]['ram']) > 0:
+                        self.projects[server.tenant_id]['utilized_ram%'] += \
+                        float(mem_stat[0].max) / float(self.flavors[server.flavor['id']]['ram'])
+                    else:
+                        self.logger.error('Cannot get flavor for server id = '+server.id)
                 except:
                     self.logger.error('Cannot get memory statistics for server id = '+server.id)
         else:
@@ -166,16 +169,18 @@ class region:
             if ((u'running_instances' in self.projects[project].keys())
                 and ('utilized_instances' in self.projects[project].keys())
                 and ('alloc_cpu' in self.projects[project].keys())):
-                self.projects[project]['total_cpu%'] = ( float(self.projects[project]['utilized_cpu%']) /
-                                                         float(self.projects[project]['utilized_instances']) ) * \
-                                                       ( float(self.projects[project]['running_cpu']) /
-                                                         float(self.projects[project]['alloc_cpu']))
-                total_cpu_util += self.projects[project]['total_cpu%']
-                self.projects[project]['total_ram%'] = ( float(self.projects[project]['utilized_ram%']) /
-                                                         float(self.projects[project]['utilized_instances']) ) *\
-                                                       ( float(self.projects[project]['running_cpu']) /
-                                                         float(self.projects[project]['alloc_cpu']))
-                total_cpu_util += self.projects[project]['utilized_ram%']
+                if ((float(self.projects[project]['alloc_cpu']) <> 0) and
+                (float(self.projects[project]['utilized_instances']) <> 0)):
+                    self.projects[project]['total_cpu%'] = ( float(self.projects[project]['utilized_cpu%']) /
+                                                             float(self.projects[project]['utilized_instances']) ) * \
+                                                           ( float(self.projects[project]['running_cpu']) /
+                                                             float(self.projects[project]['alloc_cpu']))
+                    total_cpu_util += self.projects[project]['total_cpu%']
+                    self.projects[project]['total_ram%'] = ( float(self.projects[project]['utilized_ram%']) /
+                                                             float(self.projects[project]['utilized_instances']) ) *\
+                                                           ( float(self.projects[project]['running_ram_mb']) /
+                                                             float(self.projects[project]['alloc_ram_mb']))
+                    total_cpu_util += self.projects[project]['utilized_ram%']
             else:
                 self.logger.error('No running capacity or utilized capacity for project = '+project)
                 self.projects[project]['total_cpu%'] = 0
