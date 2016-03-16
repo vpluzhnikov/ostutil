@@ -13,12 +13,13 @@ r.get_running_capacity()
 r.get_utilization()
 
 print "REGION STATISTICS"
-
+print ""
 rows = []
 rows.append(("Resource", "Total", "Allocated", "Running", "Utilized%"))
 rows.append(("CPU", str(r.fullcapacity['cpu']), str(r.alloccapacity['alloc_cpu']),
              str(r.runningcapacity['running_cpu']), str(r.utilizedcapacity['total_cpu_util%'])))
-#rows.append(("RAM", "90", "Female"))
+rows.append(("RAM", str(r.fullcapacity['ram_mb']),  str(r.alloccapacity['alloc_ram_mb']),
+             str(r.runningcapacity['running_ram_mb']), str(r.utilizedcapacity['total_ram_util%']) ))
 print_table(rows)
 
 
