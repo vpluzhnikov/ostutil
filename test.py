@@ -8,6 +8,8 @@ else:
     configfile = sys.argv[1]
 
 r = region('ost.ini')
+r.get_running_capacity()
+r.get_utilization()
 print "REGION STATISTICS"
 print ""
 print "     CPU  |   Total   |   Allocated   |   Running     |   Utilized%   "
