@@ -42,6 +42,8 @@ class region:
                 self.flavors = self._getflavors()
                 self.fullcapacity = self._get_full_capacity()
                 self.alloccapacity = self._get_allocated_capacity()
+                self.runningcapacity = {}
+                self.utilizedcapacity = {}
                 self.connected = True
             except:
                 self.logger.error('Error for authentication with credentials from ' + configfile)
@@ -132,6 +134,10 @@ class region:
                 cpu += self.flavors[server.flavor['id']]['vcpus']
                 ram += self.flavors[server.flavor['id']]['ram']
                 instances += 1
+            self.runningcapacity = {u'running_cpu' : cpu,
+                                    u'running_ram_mb' : ram,
+                                    u'running_instances' : instances,
+                                    }
             return {u'running_cpu' : cpu,
                     u'running_ram_mb' : ram,
                     u'running_instances' : instances,
@@ -149,9 +155,11 @@ class region:
             self.projects[project]['utilized_ram%'] = 0
         if self.servers:
             for server in self.servers:
+                self.projects[server.tenant_id]['utilized_instances'] += 1
                 try:
                     cpu_stat =  self.ceilometer.statistics.list('cpu_util', q=build_query(server.id, 'cpu_util'))
                     self.projects[server.tenant_id]['utilized_cpu%'] += cpu_stat[0].max
+                    self.logger.info(cpu_stat)
                 except:
                     self.logger.error('Cannot get cpu statistics for server id = '+server.id)
                 try:
@@ -159,6 +167,7 @@ class region:
                     if float(self.flavors[server.flavor['id']]['ram']) > 0:
                         self.projects[server.tenant_id]['utilized_ram%'] += \
                         float(mem_stat[0].max) / float(self.flavors[server.flavor['id']]['ram'])
+                        self.logger.info(mem_stat)
                     else:
                         self.logger.error('Cannot get flavor for server id = '+server.id)
                 except:
@@ -167,8 +176,8 @@ class region:
             self.logger.error('No servers discovered')
         for project in self.projects.keys():
             if ((u'running_instances' in self.projects[project].keys())
-                and ('utilized_instances' in self.projects[project].keys())
-                and ('alloc_cpu' in self.projects[project].keys())):
+                and (u'utilized_instances' in self.projects[project].keys())
+                and (u'alloc_cpu' in self.projects[project].keys())):
                 if ((float(self.projects[project]['alloc_cpu']) <> 0) and
                 (float(self.projects[project]['utilized_instances']) <> 0)):
                     self.projects[project]['total_cpu%'] = ( float(self.projects[project]['utilized_cpu%']) /
@@ -178,7 +187,7 @@ class region:
                     total_cpu_util += self.projects[project]['total_cpu%']
                     self.projects[project]['total_ram%'] = ( float(self.projects[project]['utilized_ram%']) /
                                                              float(self.projects[project]['utilized_instances']) ) *\
-                                                           ( float(self.projects[project]['running_ram_mb']) /
+                                                           ( float(self.projects[project]['running_ram']) /
                                                              float(self.projects[project]['alloc_ram_mb']))
                     total_cpu_util += self.projects[project]['utilized_ram%']
             else:
@@ -186,7 +195,11 @@ class region:
                 self.projects[project]['total_cpu%'] = 0
                 self.projects[project]['total_ram%'] = 0
         if len(self.projects.keys()) > 0:
+            self.utilizedcapacity = {
+                u'total_cpu_util%' : total_cpu_util/len(self.projects),
+                u'total_ram_util%' : total_ram_util/len(self.projects),
+                }
             return {
-                u'total_cpu_util%' : total_cpu_util,
-                u'total_ram_util%' : total_ram_util,
+                u'total_cpu_util%' : total_cpu_util/len(self.projects),
+                u'total_ram_util%' : total_ram_util/len(self.projects),
             }
