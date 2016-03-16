@@ -13,8 +13,9 @@ r.get_utilization()
 print "REGION STATISTICS"
 print ""
 print "     CPU  |   Total   |   Allocated   |   Running     |   Utilized%   "
-print "          |      " + str(r.fullcapacity['cpu']) + "    |   " + str(r.alloccapacity['alloc_cpu']) + "    |   " \
-      + str(r.runningcapacity['running_cpu']) + "   |       "+str(r.utilizedcapacity['total_cpu_util%'])
+print "          |      " + str(r.fullcapacity['cpu']) + "    |   " + str(r.alloccapacity['alloc_cpu']) + \
+      "    |        " + str(r.runningcapacity['running_cpu']) + \
+      "       |       "+str(r.utilizedcapacity['total_cpu_util%'])
 
 
 #print r.fullcapacity
