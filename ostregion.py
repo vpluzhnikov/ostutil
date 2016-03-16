@@ -155,8 +155,9 @@ class region:
                 except:
                     self.logger.error('Cannot get cpu statistics for server id = '+server.id)
                 try:
-                    mem_stat =  self.ceilometer.statistics.list('cpu_util', q=build_query(server.id, 'cpu_util'))
-                    self.projects[server.tenant_id]['utilized_ram%'] += mem_stat[0].max
+                    mem_stat =  self.ceilometer.statistics.list('memory', q=build_query(server.id, 'memory'))
+                    self.projects[server.tenant_id]['utilized_ram%'] += float(mem_stat[0].max) / \
+                                                                        float(self.flavors[server.flavor['id']]['ram'])
                 except:
                     self.logger.error('Cannot get memory statistics for server id = '+server.id)
         else:
