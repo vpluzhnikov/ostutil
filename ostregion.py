@@ -170,6 +170,7 @@ class region:
                         float(mem_stat[0].max) / float(self.flavors[server.flavor['id']]['ram'])
                         self.logger.info(mem_stat)
                     else:
+                        self.projects[server.tenant_id]['utilized_ram%'] += 100
                         self.logger.error('Cannot get flavor for server id = '+server.id)
                 except:
                     self.projects[server.tenant_id]['utilized_ram%'] += 100
