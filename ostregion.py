@@ -194,7 +194,7 @@ class region:
                                                              float(self.projects[project]['utilized_instances']) ) *\
                                                            ( float(self.projects[project]['running_ram']) /
                                                              float(self.projects[project]['alloc_ram_mb']))
-                    total_cpu_util += self.projects[project]['utilized_ram%']
+                    total_ram_util += self.projects[project]['utilized_ram%']
             else:
                 self.logger.error('No running capacity or utilized capacity for project = '+project)
                 self.projects[project]['total_cpu%'] = 0
