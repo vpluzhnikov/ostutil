@@ -161,6 +161,7 @@ class region:
                     self.projects[server.tenant_id]['utilized_cpu%'] += cpu_stat[0].max
                     self.logger.info(cpu_stat)
                 except:
+                    self.projects[server.tenant_id]['utilized_cpu%'] += 100
                     self.logger.error('Cannot get cpu statistics for server id = '+server.id)
                 try:
                     mem_stat =  self.ceilometer.statistics.list('memory', q=build_query(server.id, 'memory'))
@@ -171,6 +172,7 @@ class region:
                     else:
                         self.logger.error('Cannot get flavor for server id = '+server.id)
                 except:
+                    self.projects[server.tenant_id]['utilized_ram%'] += 100
                     self.logger.error('Cannot get memory statistics for server id = '+server.id)
         else:
             self.logger.error('No servers discovered')
