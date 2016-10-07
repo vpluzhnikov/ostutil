@@ -9,6 +9,7 @@ from ceilometerclient import client as client_ceilometer
 from keystoneclient.auth.identity import v3
 from keystoneclient import session
 from keystoneclient.v3 import client as client_keystone
+from glanceclient import client as client_glance
 
 
 class region:
@@ -36,21 +37,18 @@ class region:
                 self.nova = client_nova.Client(2, session=self.session)
                 self.keystone = client_keystone.Client(session=self.session)
                 self.ceilometer = client_ceilometer.Client(2, session=self.session)
+                self.glance = client_glance.Client(2, session=self.session)
                 self.hosts = self.nova.hosts.list()
                 self.servers = self.nova.servers.list(search_opts = { 'all_tenants': 1 })
-                self.projects = self._getprogects()
-                self.flavors = self._getflavors()
-                self.fullcapacity = self._get_full_capacity()
-                self.alloccapacity = self._get_allocated_capacity()
-                self.runningcapacity = {}
-                self.utilizedcapacity = {}
+                self.projects = self.getprojects()
+                self.flavors = self.getflavors()
                 self.connected = True
             except:
                 self.logger.error('Error for authentication with credentials from ' + configfile)
                 self.connected = False
 
 
-    def _getprogects(self):
+    def getprojects(self):
         self.logger.info('Reading projects from region')
         projects = {}
         if self.keystone:
@@ -62,7 +60,7 @@ class region:
         self.logger.info('Total '+str(len(projects))+' projects discovered')
         return projects
 
-    def _getflavors(self):
+    def getflavors(self):
         self.logger.info('Reading flavors from region')
         flavors = {}
         if self.nova:
@@ -74,137 +72,3 @@ class region:
             self.logger.error('No active nova connection')
             return None
         return flavors
-
-    def _get_full_capacity(self):
-        self.logger.info('Get full capacity from region')
-        cpu = 0
-        ram = 0
-        disk = 0
-        if self.nova:
-            for host in self.nova.hosts.list():
-                if host.service == u'compute':
-                    self.logger.info('Compute host ' + host.host_name + ' discovered.')
-                    compute_host = self.nova.hosts.get(host.host_name)[0]._info
-                    cpu += compute_host['resource']['cpu']
-                    ram += compute_host['resource']['memory_mb']
-                    disk += compute_host['resource']['disk_gb']
-        else:
-            self.logger.error('No active nova connection')
-            return None
-        return {u'cpu' : cpu,
-                u'ram_mb' : ram,
-                u'disk_gb' : disk}
-
-    def _get_allocated_capacity(self):
-        self.logger.info('Get allocated capacity for projects in region')
-        cpu = 0
-        ram = 0
-        instances = 0
-        if self.nova and self.keystone:
-            for project in self.projects.keys():
-                quota = self.nova.quotas.get(project)
-                cpu += quota.cores
-                ram += quota.ram
-                instances += quota.instances
-                self.projects[project].update({'alloc_cpu' : quota.cores,
-                                               'alloc_ram_mb': quota.ram,
-                                               'alloc_instances' : quota.instances})
-            return {u'alloc_cpu' : cpu,
-                    u'ram_mb' : ram,
-                    u'alloc_instances' : instances,
-                    }
-        else:
-            self.logger.error('No active keystone or nova connection')
-            return None
-
-
-    def get_running_capacity(self):
-        cpu = 0
-        ram = 0
-        instances = 0
-        for project in self.projects.keys():
-            self.projects[project]['running_instances'] = 0
-            self.projects[project]['running_cpu'] = 0
-            self.projects[project]['running_ram'] = 0
-        if self.nova and self.keystone:
-            for server in self.servers:
-                self.projects[server.tenant_id]['running_instances'] += 1
-                self.projects[server.tenant_id]['running_cpu'] += self.flavors[server.flavor['id']]['vcpus']
-                self.projects[server.tenant_id]['running_ram'] += self.flavors[server.flavor['id']]['ram']
-                cpu += self.flavors[server.flavor['id']]['vcpus']
-                ram += self.flavors[server.flavor['id']]['ram']
-                instances += 1
-            self.runningcapacity = {u'running_cpu' : cpu,
-                                    u'running_ram_mb' : ram,
-                                    u'running_instances' : instances,
-                                    }
-            return {u'running_cpu' : cpu,
-                    u'running_ram_mb' : ram,
-                    u'running_instances' : instances,
-                    }
-        else:
-            self.logger.error('No active keystone or nova connection')
-            return None
-
-    def get_utilization(self):
-        total_cpu_util = 0
-        total_ram_util = 0
-        for project in self.projects.keys():
-            self.projects[project]['utilized_instances'] = 0
-            self.projects[project]['utilized_cpu%'] = 0
-            self.projects[project]['utilized_ram%'] = 0
-        if self.servers:
-            for server in self.servers:
-                self.projects[server.tenant_id]['utilized_instances'] += 1
-                try:
-                    cpu_stat =  self.ceilometer.statistics.list('cpu_util', q=build_query(server.id, 'cpu_util'))
-                    self.projects[server.tenant_id]['utilized_cpu%'] += cpu_stat[0].max
-                    self.logger.info(cpu_stat)
-                except:
-                    self.projects[server.tenant_id]['utilized_cpu%'] += 100
-                    self.logger.error('Cannot get cpu statistics for server id = '+server.id)
-                try:
-                    mem_stat =  self.ceilometer.statistics.list('memory', q=build_query(server.id, 'memory'))
-                    if float(self.flavors[server.flavor['id']]['ram']) > 0:
-                        self.projects[server.tenant_id]['utilized_ram%'] += \
-                        float(mem_stat[0].max) / float(self.flavors[server.flavor['id']]['ram'])
-                        self.logger.info(mem_stat)
-                    else:
-                        self.projects[server.tenant_id]['utilized_ram%'] += 100
-                        self.logger.error('Cannot get flavor for server id = '+server.id)
-                except:
-                    self.projects[server.tenant_id]['utilized_ram%'] += 100
-                    self.logger.error('Cannot get memory statistics for server id = '+server.id)
-        else:
-            self.logger.error('No servers discovered')
-        for project in self.projects.keys():
-            self.projects[project]['total_cpu%'] = 0
-            self.projects[project]['total_ram%'] = 0
-            if ((u'running_instances' in self.projects[project].keys())
-                and (u'utilized_instances' in self.projects[project].keys())
-                and (u'alloc_cpu' in self.projects[project].keys())):
-                if ((float(self.projects[project]['alloc_cpu']) <> 0) and
-                (float(self.projects[project]['utilized_instances']) <> 0)):
-                    self.projects[project]['total_cpu%'] = ( float(self.projects[project]['utilized_cpu%']) /
-                                                             float(self.projects[project]['utilized_instances']) ) * \
-                                                           ( float(self.projects[project]['running_cpu']) /
-                                                             float(self.projects[project]['alloc_cpu']))
-                    total_cpu_util += self.projects[project]['total_cpu%']
-                    self.projects[project]['total_ram%'] = ( float(self.projects[project]['utilized_ram%']) /
-                                                             float(self.projects[project]['utilized_instances']) ) *\
-                                                           ( float(self.projects[project]['running_ram']) /
-                                                             float(self.projects[project]['alloc_ram_mb']))
-                    total_ram_util += self.projects[project]['total_ram%']
-            else:
-                self.logger.error('No running capacity or utilized capacity for project = '+project)
-                self.projects[project]['total_cpu%'] = 0
-                self.projects[project]['total_ram%'] = 0
-        if len(self.projects.keys()) > 0:
-            self.utilizedcapacity = {
-                u'total_cpu_util%' : total_cpu_util/len(self.projects),
-                u'total_ram_util%' : total_ram_util/len(self.projects),
-                }
-            return {
-                u'total_cpu_util%' : total_cpu_util/len(self.projects),
-                u'total_ram_util%' : total_ram_util/len(self.projects),
-            }

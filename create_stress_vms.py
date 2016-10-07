@@ -17,9 +17,8 @@ flavor = r.nova.flavors.find(name=r.config["test-flavor"])
 
 prefix = r.config["test-vm-prefix"]
 total_vm_count = int(r.config["test-vm-count"])
-vms_deleted = False
-vol_list = []
-while not vms_deleted:
+vms_created = False
+while not vms_created:
     if (total_vm_count - 10) > 10:
 	num_vm = 10
     else:
@@ -27,16 +26,19 @@ while not vms_deleted:
     for num in range(0,num_vm):
 	vm_id = total_vm_count
 	total_vm_count -= 1
-	print "Deleting vm with id = " + prefix+str(vm_id)
-	server = r.nova.servers.find(name = prefix+str(vm_id))
-	vol_list += r.nova.volumes.get_server_volumes(server.id)
-	server.delete()
+	print "Creating vm with id = " + prefix+str(vm_id)
+	server = r.nova.servers.create(name = prefix+str(vm_id), image = image.id, flavor = flavor.id, nics = [{'net-id':net.id}])
+	sleep(1)
+    print "Sleeping fo 10 seconds..."
+    #sleep(10)
     if total_vm_count == 0:
-	vms_deleted = True
+	vms_created = True
+ips = []
+for serv in r.nova.servers.list():
+    ips.append(serv.addresses)
+print ips
+    
+    
 
-print "Cleanup for volumes"
-sleep(5)
-
-for vol in vol_list:
-    r.nova.volumes.delete(vol.id)
-
+#print server
+#print image.__dict__, net.__dict__, flavor.__dict__
